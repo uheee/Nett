@@ -23,17 +23,17 @@ namespace Nett.Coma.Path
 
             public void SetValue(TomlObject target, TomlObject value, PathSettings settings)
             {
-                if (value is TomlArray a)
+                if (target is TomlArray a)
                 {
                     a.Items[this.index] = (TomlValue)value;
                 }
-                else if (value is TomlTableArray ta)
+                else if (target is TomlTableArray ta)
                 {
                     ta.Items[this.index] = (TomlTable)value;
                 }
                 else
                 {
-                    throw new InvalidOperationException(
+                  throw new InvalidOperationException(
                         $"Cannot apply index '[{this.index}]' onto TOML object of type '{target.ReadableTypeName}'.");
                 }
             }
