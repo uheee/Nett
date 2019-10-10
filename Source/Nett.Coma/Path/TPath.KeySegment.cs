@@ -40,11 +40,12 @@ namespace Nett.Coma.Path
             public override TomlObject TryApply(TomlObject obj, Func<TomlObject> __, PathSettings settings)
                 => this.ApplyKey(obj, _ => null, ReturnDefaultOnError, settings);
 
-            public override void SetValue(TomlObject target, TomlObject value, PathSettings settings)
+            public override void SetValue(TomlObject target, Func<TomlObject, TomlObject> createNewValueObject, PathSettings settings)
             {
                 if (target is TomlTable tbl)
                 {
-                    tbl[this.key] = value;
+                    tbl.TryGetValue(this.key, out var cur);
+                    tbl[this.key] = createNewValueObject(cur);
                 }
                 else
                 {

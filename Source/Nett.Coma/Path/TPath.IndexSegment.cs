@@ -21,20 +21,20 @@ namespace Nett.Coma.Path
             public TomlObject TryApply(TomlObject obj, Func<TomlObject> __, PathSettings settings = PathSettings.None)
                 => this.ApplyIndex(obj, _ => null);
 
-            public void SetValue(TomlObject target, TomlObject value, PathSettings settings)
+            public void SetValue(TomlObject target, Func<TomlObject, TomlObject> createNewValueObject, PathSettings settings)
             {
                 if (target is TomlArray a)
                 {
-                    a.Items[this.index] = (TomlValue)value;
+                    a.Items[this.index] = (TomlValue)createNewValueObject(a.Items[this.index]);
                 }
                 else if (target is TomlTableArray ta)
                 {
-                    ta.Items[this.index] = (TomlTable)value;
+                    ta.Items[this.index] = (TomlTable)createNewValueObject(ta.Items[this.index]);
                 }
                 else
                 {
-                  throw new InvalidOperationException(
-                        $"Cannot apply index '[{this.index}]' onto TOML object of type '{target.ReadableTypeName}'.");
+                    throw new InvalidOperationException(
+                          $"Cannot apply index '[{this.index}]' onto TOML object of type '{target.ReadableTypeName}'.");
                 }
             }
 

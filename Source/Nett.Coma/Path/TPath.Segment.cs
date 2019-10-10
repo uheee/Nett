@@ -17,7 +17,7 @@ namespace Nett.Coma.Path
 
             public abstract TomlObject Apply(TomlObject obj, Func<TomlObject> _, PathSettings settings);
 
-            public abstract void SetValue(TomlObject target, TomlObject value, PathSettings settings);
+            public abstract void SetValue(TomlObject target, Func<TomlObject, TomlObject> createNewValueObject, PathSettings settings);
 
             public abstract TomlObject TryApply(TomlObject target, Func<TomlObject> _, PathSettings settings);
 

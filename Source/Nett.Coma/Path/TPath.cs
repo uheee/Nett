@@ -61,10 +61,10 @@ namespace Nett.Coma.Path
             }
         }
 
-        public void SetValue(TomlObject applyTo, TomlObject value, PathSettings settings = PathSettings.CreateTables)
+        public void SetValue(TomlObject applyTo, Func<TomlObject, TomlObject> createNewValueObject, PathSettings settings = PathSettings.CreateTables)
         {
             var target = this.prefixPath.Apply(applyTo, settings);
-            this.segment.SetValue(target, value, settings);
+            this.segment.SetValue(target, createNewValueObject, settings);
         }
 
         public bool ClearFrom(TomlTable from)
