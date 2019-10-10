@@ -286,16 +286,8 @@
         internal override TomlObject CloneFor(ITomlRoot root) => this.CloneTableFor(root);
 
         internal TomlTable CloneTableFor(ITomlRoot root)
-        {
-            var tbl = new TomlTable(root, this.TableType);
+            => this.CloneForInternal(() => new TomlTable(root));
 
-            foreach (var r in this.rows)
-            {
-                tbl.AddRow(r.Key, r.Value.CloneFor(root));
-            }
-
-            return tbl;
-        }
 
         internal override object GetInternal(Type t, Func<IEnumerable<string>> getMyKeyChain)
         {
@@ -382,6 +374,18 @@
             }
 
             return table;
+        }
+
+        protected virtual TomlTable CloneForInternal(Func<TomlTable> createCloneInstance)
+        {
+            var tbl = createCloneInstance();
+
+            foreach (var r in this.rows)
+            {
+                tbl.AddRow(r.Key, r.Value.CloneFor(tbl.Root));
+            }
+
+            return CopyComments(tbl, this);
         }
 
         protected virtual void OnRowValueSet(string rowKey)

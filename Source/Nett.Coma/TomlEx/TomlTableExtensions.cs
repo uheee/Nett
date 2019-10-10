@@ -111,23 +111,6 @@
         }
 
         public static TomlTable Clone(this TomlTable input)
-        {
-            input.CheckNotNull(nameof(input));
-
-            TomlTable cloned = Toml.Create(input.Root.Settings);
-            cloned.TableType = input.TableType;
-
-            foreach (var r in input.InternalRows)
-            {
-                switch (r.Value.TomlType)
-                {
-                    case TomlObjectType.Table: cloned.AddRow(r.Key, ((TomlTable)r.Value).Clone()); break;
-                    case TomlObjectType.ArrayOfTables: cloned.AddRow(r.Key, ((TomlTableArray)r.Value).Clone()); break;
-                    default: cloned[r.Key.Value] = r.Value; break;
-                }
-            }
-
-            return cloned;
-        }
+            => input.CloneTableFor(input.Root);
     }
 }
