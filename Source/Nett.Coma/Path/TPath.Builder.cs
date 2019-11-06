@@ -27,7 +27,7 @@ namespace Nett.Coma.Path
                     case ParameterExpression pe:
                         return new TPath();
                     default:
-                        throw new InvalidOperationException($"TPath cannot be created as expression '{expression}' cannot be handled.");
+                        throw new InvalidOperationException($"TPath cannot be created as expression '{expression.GetType()}' cannot be handled.");
                 }
             }
 
