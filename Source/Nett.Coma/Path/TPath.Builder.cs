@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Nett.Coma.Path
@@ -26,15 +27,23 @@ namespace Nett.Coma.Path
                         return path / seg;
                     case ParameterExpression pe:
                         return new TPath();
+                    case MethodCallExpression mce:
+                        path = Build(mce.Object, settings);
+                        seg = GetSegmentFromConstantExpression((ConstantExpression)mce.Arguments.Single());
+                        return path / seg;
                     default:
                         throw new InvalidOperationException($"TPath cannot be created as expression '{expression.GetType()}' cannot be handled.");
                 }
             }
 
             private static ITPathSegment GetSegmentFromConstantExpression(ConstantExpression ce)
-            {
-                return new IndexSegment((int)ce.Value);
-            }
+                => ce switch
+                {
+                    _ when ce.Value is int i => new IndexSegment(i),
+                    _ when ce.Value is long l => new IndexSegment((int)l),
+                    _ when ce.Value is string s => new ValueSegment(s),
+                    _ => throw new InvalidOperationException($"Cannot convert constant expression '{ce}' to TPath segment."),
+                };
 
             private static ITPathSegment GetSegmentFromMemberExpression(MemberExpression expr, TomlSettings config)
             {
@@ -86,6 +95,10 @@ namespace Nett.Coma.Path
                 if (memberType.IsArray)
                 {
                     return GetTargetTypeFromArrayType();
+                }
+                else if (typeof(IDictionary).IsAssignableFrom(memberType))
+                {
+                    return TomlObjectType.Table;
                 }
                 else if (typeof(IEnumerable).IsAssignableFrom(memberType))
                 {
