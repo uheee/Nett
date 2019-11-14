@@ -69,6 +69,6 @@ namespace Nett.Coma.Tests.Internal.Unit
         }
 
         private static TPath Build<TR>(Expression<Func<Tpo, TR>> expression)
-            => TPath.Builder.Build(expression);
+            => TPath.Build(expression, TomlSettings.DefaultInstance);
     }
 }
