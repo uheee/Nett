@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using FluentAssertions;
 using Nett.Tests.Util;
 using Xunit;
@@ -76,7 +75,7 @@ namespace Nett.Coma.Tests.Functional
 
 
         [Fact]
-        public void GivenGenericDictStructure_CanReadItAsObject()
+        public void GivenTomlWithTable_ComaCanMapItIntoAGenericDictionaryOfObjectValues()
         {
             using var machine = TestFileName.Create("machine", ".toml");
 
@@ -95,10 +94,10 @@ e = [""b"", ""c""]";
                 .Initialize();
 
             // Act
-            var r = cfg.Get(c => c.Table["e"]);
+            var r = cfg.GetAs<string[]>(c => c.Table["e"]);
 
             // Assert
-            ((object[])r).OfType<string>().Should().Equal("b", "c");
+            r.Should().Equal("b", "c");
         }
 
         public class FooyCfg
