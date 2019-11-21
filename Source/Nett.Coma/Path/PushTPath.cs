@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
 
 namespace Nett.Coma.Path
 {
-    internal sealed class TPath
+    internal sealed partial class TPath
     {
         private static readonly TPath Root = new TPath(null, new PathSegment(typeof(object)));
 
@@ -18,9 +17,9 @@ namespace Nett.Coma.Path
             this.segment = segment;
         }
 
-        public static TPath Build(LambdaExpression expression, TomlSettings settings)
+        public static TPath Build(LambdaExpression expression)
         {
-            return BuildInternal(expression.Body, settings);
+            return BuildInternal(expression.Body);
         }
 
         public bool Clear(TomlObject target)
@@ -77,21 +76,21 @@ namespace Nett.Coma.Path
             }
         }
 
-        private static TPath BuildInternal(Expression expression, TomlSettings settings)
+        private static TPath BuildInternal(Expression expression)
         {
             switch (expression)
             {
                 case MemberExpression me:
-                    var path = BuildInternal(me.Expression, settings);
-                    return new TPath(path, GetSegmentFromMemberExpression(me, settings));
+                    var path = BuildInternal(me.Expression);
+                    return new TPath(path, GetSegmentFromMemberExpression(me));
                 case BinaryExpression be:
-                    path = BuildInternal(be.Left, settings);
+                    path = BuildInternal(be.Left);
                     var seg = GetSegmentFromConstantExpression((ConstantExpression)be.Right);
                     return new TPath(path, seg);
                 case ParameterExpression pe:
                     return Root;
                 case MethodCallExpression mce:
-                    path = BuildInternal(mce.Object, settings);
+                    path = BuildInternal(mce.Object);
                     seg = GetSegmentFromConstantExpression((ConstantExpression)mce.Arguments.Single());
                     return new TPath(path, seg);
                 default:
@@ -108,7 +107,7 @@ namespace Nett.Coma.Path
                 _ => throw new InvalidOperationException($"Cannot convert constant expression '{ce}' to TPath segment."),
             };
 
-        private static PathSegment GetSegmentFromMemberExpression(MemberExpression expr, TomlSettings config)
+        private static PathSegment GetSegmentFromMemberExpression(MemberExpression expr)
         {
             return new RowSegment(expr.Type, expr.Member.Name);
         }
@@ -116,16 +115,19 @@ namespace Nett.Coma.Path
         private TomlObject Resolve(TomlObject target)
         {
             var tgt = this.parent?.Resolve(target) ?? target;
-            return this.segment.Resolve(tgt);
+            return this.segment.Resolve(tgt, ResolveParent);
+
+            TomlObject ResolveParent()
+                => this.parent?.parent?.Resolve(target) ?? tgt;
         }
 
         private class PathSegment
         {
-            protected readonly Type segmentType;
+            protected readonly Type mappedType;
 
-            public PathSegment(Type segmentType)
+            public PathSegment(Type mappedType)
             {
-                this.segmentType = segmentType;
+                this.mappedType = mappedType;
             }
 
             public virtual void Set(TomlObject target, TomlObject obj)
@@ -134,56 +136,13 @@ namespace Nett.Coma.Path
             public virtual TomlObject Get(TomlObject target)
                 => target;
 
-            public virtual TomlObject Resolve(TomlObject target)
+            public virtual TomlObject Resolve(TomlObject target, Func<TomlObject> resolveTargetsParent)
                 => target;
 
             public virtual bool Clear(TomlObject target)
                 => throw new NotSupportedException();
 
             public override string ToString() => string.Empty;
-        }
-
-        private sealed class RowSegment : PathSegment
-        {
-            private readonly string key;
-
-            public RowSegment(Type sourceType, string key)
-                : base(sourceType)
-            {
-                this.key = key;
-            }
-
-            public override TomlObject Get(TomlObject target)
-                => target switch
-                {
-                    TomlTable tbl => GetTableRowOrThrowOnNotFound(this.key, tbl),
-                    _ => throw new InvalidOperationException("T1"),
-                };
-
-            public override TomlObject Resolve(TomlObject target)
-                => target switch
-                {
-                    TomlTable tbl => GetTableRowOrCreateDefault(this.key, tbl, this.segmentType),
-                    _ => throw new InvalidOperationException("T2"),
-                };
-
-            public override void Set(TomlObject target, TomlObject obj)
-            {
-                switch (target)
-                {
-                    case TomlTable tbl: tbl[this.key] = obj; break;
-                    default: throw new InvalidOperationException("T2");
-                }
-            }
-
-            public override bool Clear(TomlObject target)
-                => target switch
-                {
-                    TomlTable tbl => tbl.Remove(this.key),
-                    _ => throw new InvalidOperationException("X4"),
-                };
-
-            public override string ToString() => $"/{this.key}";
         }
 
         private sealed class IndexSegment : PathSegment
@@ -204,7 +163,7 @@ namespace Nett.Coma.Path
                     _ => throw new InvalidOperationException("X1"),
                 };
 
-            public override TomlObject Resolve(TomlObject target)
+            public override TomlObject Resolve(TomlObject target, Func<TomlObject> resolveTargetsParent)
                 => this.Get(target);
 
             public override void Set(TomlObject target, TomlObject obj)

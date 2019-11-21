@@ -41,7 +41,7 @@ namespace Nett.Coma.Tests.Internal.Unit
             var path = Build(x => x.D["S"]);
 
             // Assert
-            path.ToString().Should().Be("/{D}/S");
+            path.ToString().Should().Be("/D/S");
         }
 
         [Fact]
@@ -53,7 +53,7 @@ namespace Nett.Coma.Tests.Internal.Unit
             var path = Build(x => x.DD["A"]["B"]);
 
             // Assert
-            path.ToString().Should().Be("/[{DD}]/{A}/B");
+            path.ToString().Should().Be("/DD/A/B");
         }
 
         [Fact]
@@ -65,10 +65,10 @@ namespace Nett.Coma.Tests.Internal.Unit
             var path = Build(x => x.DDD["A"]["B"]["C"]);
 
             // Assert
-            path.ToString().Should().Be("/[{DDD}]/[{A}]/{B}/C");
+            path.ToString().Should().Be("/DDD/A/B/C");
         }
 
         private static TPath Build<TR>(Expression<Func<Tpo, TR>> expression)
-            => TPath.Build(expression, TomlSettings.DefaultInstance);
+            => TPath.Build(expression);
     }
 }
