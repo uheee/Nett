@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -61,7 +62,7 @@ namespace Nett.Coma.Path
             => $"{this.parent?.ToString() ?? string.Empty}{this.segment.ToString()}";
 
         private static TomlObject GetTableRowOrThrowOnNotFound(string key, TomlTable tbl)
-            => tbl.TryGetValue(key, out var val) ? val : throw new InvalidOperationException();
+            => tbl.TryGetValue(key, out var val) ? val : throw new KeyNotFoundException($"Key '{key}' not found in TOML table.");
 
         private static TomlObject GetTableRowOrCreateDefault(string key, TomlTable tbl, Type rowType)
         {

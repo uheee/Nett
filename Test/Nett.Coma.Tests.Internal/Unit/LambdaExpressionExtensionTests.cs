@@ -35,7 +35,7 @@ namespace Nett.Coma.Tests.Unit
             var path = e.BuildTPath();
 
             // Assert
-            path.ToString().Should().Be("/[A]");
+            path.ToString().Should().Be("/A");
         }
 
         [Fact]
@@ -48,7 +48,7 @@ namespace Nett.Coma.Tests.Unit
             var path = e.BuildTPath();
 
             // Assert
-            path.ToString().Should().Be("/[E]");
+            path.ToString().Should().Be("/E");
         }
 
         [Fact]
